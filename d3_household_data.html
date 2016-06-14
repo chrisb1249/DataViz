@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+    <div id="header">
+          <head>
+              <title>W209 Data Visualization - Household Data Visualization with D3</title>
+        </div>
+        <meta charset="utf-8">
+        <title>D3 Homework</title>
+        <script type="text/javascript" src="d3.min.js"></script>
+        <style type="text/css">
+        </style>
+    </head>
+    <body>
+      <h1>A (not so) Friendly Game of Cribbage</h1>
+      <h2>Chris Bennett vs. Anita Bennett</h2>
+      <p></p>
+      <script type="text/javascript">
+      //Width and height
+			var w = 500;
+			var h = 250;
+			var barPadding = 1;
+
+      var A_dataset = [ 17, 29, 53, 58, 65, 73, 86, 98, 110, 115];
+      var C_dataset = [ 10, 26, 37, 46, 63, 71, 85, 103, 111, 127 ];
+
+			var Asvg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			Asvg.selectAll("rect")
+			   .data(A_dataset)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return i * (w / A_dataset.length);
+			   })
+			   .attr("y", function(d) {
+			   		return h - (d * 2);
+			   })
+			   .attr("width", w / A_dataset.length - barPadding)
+			   .attr("height", function(d) {
+			   		return d * 2;
+			   })
+			   .attr("fill", function(d) {
+					return "rgb(0, 0, 100)";
+			   });
+
+			Asvg.selectAll("text")
+			   .data(A_dataset)
+			   .enter()
+			   .append("text")
+			   .text(function(d) {
+			   		return d;
+			   })
+			   .attr("x", function(d, i) {
+			   		return i * (w / A_dataset.length) + 5;
+			   })
+			   .attr("y", function(d) {
+			   		return h - (d * 2) + 15;
+			   })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "white");
+
+         d3.select('body').append('p').text('Anitas Score Each Hand - The NOT WINNER!');
+
+         var Csvg = d3.select("body")
+   						.append("svg")
+   						.attr("width", w)
+   						.attr("height", h);
+
+         Csvg.selectAll("rect")
+   			   .data(C_dataset)
+   			   .enter()
+   			   .append("rect")
+   			   .attr("x", function(d, i) {
+   			   		return i * (w / C_dataset.length);
+   			   })
+   			   .attr("y", function(d) {
+   			   		return h - (d * 2);
+   			   })
+   			   .attr("width", w / C_dataset.length - barPadding)
+   			   .attr("height", function(d) {
+   			   		return d * 2;
+   			   })
+   			   .attr("fill", function(d) {
+   					return "rgb(0, 0, 300)";
+   			   });
+
+   			Csvg.selectAll("text")
+   			   .data(C_dataset)
+   			   .enter()
+   			   .append("text")
+   			   .text(function(d) {
+   			   		return d;
+   			   })
+   			   .attr("x", function(d, i) {
+   			   		return i * (w / C_dataset.length) + 5;
+   			   })
+   			   .attr("y", function(d) {
+   			   		return h - (d * 2) + 15;
+   			   })
+   			   .attr("font-family", "sans-serif")
+   			   .attr("font-size", "11px")
+   			   .attr("fill", "white");
+           d3.select('body').append('p').text('Chris Score Each Hand - THE WINNER!');
+        </script>
+    </body>
+</html>
