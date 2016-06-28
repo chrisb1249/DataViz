@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+body { font: 12px Arial;}
+
+path {
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.grid .tick {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
+
+.legend {
+    font-size: 16px;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+
+</style>
+
+<head>
+    <title>W209 Data Visualization Assignment 4</title>
+</head>
+
+<body>
+  <div style="text-align:center;">
+    <div style="width:100%; margin: 0 auto; text-align:left;">
+  <h1>W209 Data Visualization - Assignment 4</h1>
+  <h2>D3 Interactive Chart - A Cribbage Game</h2>
+
+  <h3>Chris Bennett</h3>
+
+  <img src="cribbage.jpg" alt="Cribbage Board" style="width:304px;height:228px;">
+
+
+
+    <p>Cribbage, or crib, is a card game traditionally for two players, but commonly played with three, four or more, that involves playing and grouping cards in combinations which gain points. Cribbage has several distinctive features: the cribbage board used for score-keeping, the eponymous crib or box (a separate hand counting for the dealer), two distinct scoring stages (the play and the show) and a unique scoring system including points for groups of cards that total fifteen. -Wikipedia</p>
+    <p>
+    <p>The following graph shows the score progression for two players during a close game of Cribbage. The scores shown for each hand include the combined scores from the Play, the Show, and the Crib for each player.</p>
+    <p><a href="https://en.wikipedia.org/wiki/Rules_of_cribbage">To learn more about the rules of Cribbage.</a></p>
+    <p><img src="cribbage3.jpg" alt="Cribbage Board" style="width:304px;height:228px;">
+
+
+  </div>
+</div>
+
+
+<p>
+<h1>A Cribbage Game - Anita vs. Chris</h1>
+<h4>Mouseover the lines to view the scores after each hand OR click on either player's name below to toggle their scores on/off.</h4>
+<!-- load the d3.js library -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+
+var margin = {top: 20, right: 60, bottom: 120, left: 100},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var xcb = d3.bisector(function(d) { return d.hand; }).left;
+
+// Set the ranges
+var x = d3.scale.linear().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(10);
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(15);
+
+// Define the line
+var scoreline = d3.svg.line()
+    .x(function(d) { return x(d.hand); })
+    .y(function(d) { return y(d.score); });
+
+// Adds the svg canvas
+var svg = d3.select("body")
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+// function for the x grid lines
+function make_x_axis() {
+    return d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .ticks(10)
+}
+
+// function for the y grid lines
+function make_y_axis() {
+    return d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(5)
+}
+
+// Get the data
+d3.csv("game.csv", function(error, data) {
+    data.forEach(function(d) {
+		d.hand = +d.hand;
+		d.score = +d.score;
+    });
+
+    data.sort(function(a, b) {
+      return a.hand - b.hand;
+    });
+
+    // Scale the range of the data
+    x.domain(d3.extent(data, function(d) { return d.hand; }));
+    y.domain([0, d3.max(data, function(d) { return d.score; })]);
+
+    // Nest the entries by symbol
+    var dataNest = d3.nest()
+        .key(function(d) {return d.player;})
+        .entries(data);
+
+    var color = d3.scale.category10();   // set the colour scale
+
+    legendSpace = width/dataNest.length; // spacing for the legend
+
+    // Loop through each symbol / key
+    dataNest.forEach(function(d,i) {
+
+        svg.append("path")
+            .attr("class", "line")
+            .style("stroke", function() { // Add the colours dynamically
+                return d.color = color(d.key); })
+            .attr("id", 'tag'+d.key.replace(/\s+/g, '')) // assign ID
+            .attr("d", scoreline(d.values));
+
+    // Draw the x Grid lines
+        svg.append("g")
+            .attr("class", "grid")
+            .attr("transform", "translate(0," + height + ")")
+            .call(make_x_axis()
+                .tickSize(-height, 0, 0)
+                .tickFormat("")
+            )
+
+            // Draw the y Grid lines
+        svg.append("g")
+            .attr("class", "grid")
+            .call(make_y_axis()
+                .tickSize(-width, 0, 0)
+                .tickFormat("")
+            )
+
+
+        // Add the Legend
+        svg.append("text")
+            .attr("x", (legendSpace/2)+i*legendSpace)  // space legend
+            .attr("y", height + (margin.bottom)/2+ 15)
+            .attr("class", "legend")    // style the legend
+            .style("fill", function() { // Add the colours dynamically
+                return d.color = color(d.key); })
+            .on("click", function(){
+                // Determine if current line is visible
+                var active   = d.active ? false : true,
+                newOpacity = active ? 0 : 1;
+                // Hide or show the elements based on the ID
+                d3.select("#tag"+d.key.replace(/\s+/g, ''))
+                    .transition().duration(100)
+                    .style("opacity", newOpacity);
+                // Update whether or not the elements are active
+                d.active = active;
+                })
+            .text(d.key);
+
+    });
+
+    // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+    svg.append("text")      // text label for the x axis
+        .attr("x", 398 )
+        .attr("y",  400 )
+        .style("text-anchor", "middle")
+        .text("Cribbage Hand");
+
+    svg.append("text")      // text label for the x axis
+        .attr("x", 398 )
+        .attr("y",  435 )
+        .style("text-anchor", "middle")
+        .text("<<< Click on the player's name to toggle their scores on/off >>>");
+
+
+    svg.append("text")      // text label for the x axis
+        .attr("x", -55 )
+        .attr("y",  195 )
+        .style("text-anchor", "middle")
+        .text("Score");
+
+        svg.append("path")
+            .datum(data[0])
+            .attr("class", "line")
+            .attr("d", scoreline);
+
+        var focus = svg.append("g")
+            .attr("class", "focus")
+            .style("display", "none");
+
+        focus.append("circle")
+            .attr("r", 4.5);
+
+        focus.append("text")
+            .attr("x", 9)
+            .attr("dy", ".35em");
+
+        svg.append("rect")
+            .attr("class", "overlay")
+            .attr("width", width)
+            .attr("height", height)
+            .on("mouseover", function() { focus.style("display", null); })
+            .on("mouseout", function() { focus.style("display", "none"); })
+            .on("mousemove", mousemove);
+
+        function mousemove() {
+          var x0 = x.invert(d3.mouse(this)[0]),
+              i = xcb(data, x0, 1),
+              d0 = data[i - 1],
+              d1 = data[i],
+              d = x0 - d0.hand > d1.hand - x0 ? d1 : d0;
+            focus.attr("transform", "translate(" + x(d.hand) + "," + y(d.score) + ")");
+            focus.select("text").text(d.player + ":" + d.score);
+//          focus.attr("transform", "translate(" + x(d.hand) + "," + y(d.score) + ")");
+//          focus.select("text").text(d.score);
+        }
+
+});
+
+</script>
+</body>
